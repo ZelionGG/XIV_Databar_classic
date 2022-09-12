@@ -14,6 +14,7 @@ function TravelModule:OnInitialize()
   --self.garrisonHearth = 110560
   self.hearthstones = {
 	184871, -- Dark Portal
+    6948, -- Hearthstone
   }
 
   self.portButtons = {}
