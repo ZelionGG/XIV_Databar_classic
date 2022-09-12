@@ -257,7 +257,7 @@ function TravelModule:SetPortColor()
   else
     local hearthname = ''
     local hearthActive = false
-    if (PlayerHasToy(v) or IsUsableItem(v)) then
+    if (IsUsableItem(v)) then
       if GetItemCooldown(v) == 0 then
         hearthName, _ = GetItemInfo(v)
         if hearthName ~= nil then
@@ -417,7 +417,7 @@ function TravelModule:Refresh()
 
   self.portIcon:SetPoint("RIGHT", self.portText, "LEFT", -(db.general.barPadding), 0)
 
-  self:SetPortColor()
+  --self:SetPortColor()
 
   self:CreatePortPopup()
 
