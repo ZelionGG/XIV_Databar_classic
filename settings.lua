@@ -60,7 +60,7 @@ cfg.clock = {
 }
 
 cfg.tradeSkill = {
-	show = false,			-- USES THIS MODULE
+	show = true,			-- USES THIS MODULE
 	showTooltip = true,		-- SHOW WHAT TRADESKILLS THAT ARE ON COOLDOWN
 }
 

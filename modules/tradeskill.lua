@@ -4,6 +4,7 @@ local xb = XIVBar;
 local L = XIVBar.L;
 
 local TradeskillModule = xb:NewModule("TradeskillModule", 'AceEvent-3.0')
+local LibAddonCompat = LibStub("LibAddonCompat-1.0")
 
 function TradeskillModule:GetName()
   return TRADESKILLS;
@@ -33,11 +34,12 @@ function TradeskillModule:OnEnable()
 
   self.tradeskillFrame:Show()
 
-  self.firstProf  = { idx=nil, id=nil, name=nil, defIcon=nil, lvl=nil, maxLvl=nil }
-  self.secondProf = { idx=nil, id=nil, name=nil, defIcon=nil, lvl=nil, maxLvl=nil }
-  self.arch       = { idx=nil, id=nil, name=nil, defIcon=nil, lvl=nil, maxLvl=nil }
-  self.fish       = { idx=nil, id=nil, name=nil, defIcon=nil, lvl=nil, maxLvl=nil }
-  self.cook       = { idx=nil, id=nil, name=nil, defIcon=nil, lvl=nil, maxLvl=nil }
+  self.firstProf  = { idx=nil, id=nil, name=nil, defIcon=nil, lvl=nil, maxLvl=nil, offset=nil }
+  self.secondProf = { idx=nil, id=nil, name=nil, defIcon=nil, lvl=nil, maxLvl=nil, offset=nil }
+  self.arch       = { idx=nil, id=nil, name=nil, defIcon=nil, lvl=nil, maxLvl=nil, offset=nil }
+  self.first_aid  = { idx=nil, id=nil, name=nil, defIcon=nil, lvl=nil, maxLvl=nil, offset=nil }
+  self.fish       = { idx=nil, id=nil, name=nil, defIcon=nil, lvl=nil, maxLvl=nil, offset=nil }
+  self.cook       = { idx=nil, id=nil, name=nil, defIcon=nil, lvl=nil, maxLvl=nil, offset=nil }
 
   self:CreateFrames()
   self:RegisterFrameEvents()
@@ -53,15 +55,15 @@ end
 
 function TradeskillModule:UpdateProfValues()
   --update profession indexes before anything else or receive a million bugs when (un)learning professions
-  self.firstProf.idx, self.secondProf.idx, self.arch.idx, self.fish.idx, self.cook.idx = GetProfessions() --this is the most important line in the entire fucking module
+    self.firstProf.idx, self.secondProf.idx, self.arch.idx, self.fish.idx, self.cook.idx, self.first_aid.idx = LibAddonCompat:GetProfessions() --this is the most important line in the entire fucking module
 
   --if firstProf.idx doesn't exist, the player hasn't learned any profession and thus the tradeskillFrame is hidden
-  if not self.firstProf.idx then
+   if not self.firstProf.idx then
     self.tradeskillFrame:Hide()
   else
     --player has at least one profession, setting first one. show tradeskillFrame because it might've been hidden before
     self.tradeskillFrame:Show()
-    self.firstProf.name, self.firstProf.defIcon, self.firstProf.lvl, self.firstProf.maxLvl, _, _, self.firstProf.id, _ = GetProfessionInfo(self.firstProf.idx)
+    self.firstProf.name, self.firstProf.defIcon, self.firstProf.lvl, self.firstProf.maxLvl, _, self.firstProf.offset, self.firstProf.id, _ = LibAddonCompat:GetProfessionInfo(self.firstProf.idx)
     self.firstProfBar:SetMinMaxValues(1, self.firstProf.maxLvl)
     self.firstProfBar:SetValue(self.firstProf.lvl)
   end
@@ -72,23 +74,27 @@ function TradeskillModule:UpdateProfValues()
   else
     --player has two profession, setting second one. show secondProfFrame because it might've been hidden before
     self.secondProfFrame:Show()
-    self.secondProf.name, self.secondProf.defIcon, self.secondProf.lvl, self.secondProf.maxLvl, _, _, self.secondProf.id, _ = GetProfessionInfo(self.secondProf.idx)
+    self.secondProf.name, self.secondProf.defIcon, self.secondProf.lvl, self.secondProf.maxLvl, _, self.secondProf.offset, self.secondProf.id, _ = LibAddonCompat:GetProfessionInfo(self.secondProf.idx)
     self.secondProfBar:SetMinMaxValues(1, self.secondProf.maxLvl)
     self.secondProfBar:SetValue(self.secondProf.lvl)
   end
 
-  --update values for secondary professions if they exist (archaeology / fishing / cooking)
+  --update values for secondary professions if they exist (first aid / archaeology / fishing / cooking)
   --update archaeology
-  if self.arch.idx then
-    self.arch.name, self.arch.defIcon, self.arch.lvl, self.arch.maxLvl, _, _, self.arch.id, _ = GetProfessionInfo(self.arch.idx)
+  if self.first_aid.idx then
+    self.first_aid.name, self.first_aid.defIcon, self.first_aid.lvl, self.first_aid.maxLvl, _, self.first_aid.offset, self.first_aid.id, _ = LibAddonCompat:GetProfessionInfo(self.first_aid.idx)
   end
+  --update archaeology
+  --[[ if self.arch.idx then
+    self.arch.name, self.arch.defIcon, self.arch.lvl, self.arch.maxLvl, _, _, self.arch.id, _ = GetProfessionInfo(self.arch.idx)
+  end ]]
   --update fishing
   if self.fish.idx then
-    self.fish.name, self.fish.defIcon, self.fish.lvl, self.fish.maxLvl, _, _, self.fish.id, _ = GetProfessionInfo(self.fish.idx)
+    self.fish.name, self.fish.defIcon, self.fish.lvl, self.fish.maxLvl, _, self.fish.offset, self.fish.id, _ = LibAddonCompat:GetProfessionInfo(self.fish.idx)
   end
   --update cooking
   if self.cook.idx then
-    self.cook.name, self.cook.defIcon, self.cook.lvl, self.cook.maxLvl, _, _, self.cook.id, _ = GetProfessionInfo(self.cook.idx)
+    self.cook.name, self.cook.defIcon, self.cook.lvl, self.cook.maxLvl, _, self.cook.offset, self.cook.id, _ = LibAddonCompat:GetProfessionInfo(self.cook.idx)
   end
 end
 
@@ -104,7 +110,7 @@ function TradeskillModule:Refresh()
   --update before doing anything here mister addon creator. if we have no professions, why the fuck would we refresh anything?
   self:UpdateProfValues()
   --get the hell out of this function if we have no professions
-  if not self.firstProf.idx then return end
+  if not self.firstProf.name then return end
 
   --prepare tradeskillFrame bar width and profession icon size
   local iconSize = db.text.fontSize + db.general.barPadding
@@ -126,7 +132,7 @@ function TradeskillModule:Refresh()
   self.tradeskillFrame:SetSize(totalWidth, xb:GetHeight())
   local relativeAnchorPoint = 'RIGHT'
   local xOffset = db.general.moduleSpacing
-  if not xb:GetFrame('clockFrame'):IsVisible() then
+  if not xb:GetFrame('clockFrame') or not xb:GetFrame('clockFrame'):IsVisible() then
     relativeAnchorPoint = 'LEFT'
     xOffset = 0
   end
@@ -163,7 +169,8 @@ function TradeskillModule:StyleTradeskillFrame(prefix)
     self[prefix..'Text']:SetPoint('TOPLEFT', self[prefix..'Icon'], 'TOPRIGHT', 5, 0)
     self[prefix..'Bar']:SetStatusBarTexture(1, 1, 1)
     if db.modules.tradeskill.barCC then
-      self[prefix..'Bar']:SetStatusBarColor(xb:GetClassColors())
+      rPerc, gPerc, bPerc, argbHex = xb:GetClassColors()
+      self[prefix..'Bar']:SetStatusBarColor(rPerc, gPerc, bPerc, 1)
     else
       self[prefix..'Bar']:SetStatusBarColor(xb:GetColor('normal'))
     end
@@ -196,10 +203,9 @@ function TradeskillModule:SetProfScripts(prefix)
     if button == 'LeftButton' then
       --workaround, toggling spellbooks for tailoring / engineering / inscription is bugged on blizzard's side
       --i prefer this over the alternative of casting a spell via SecureActionButtonTemplate frames anyway
-      local _, _, _, _, _, openSkillLine, _ = C_TradeSkillUI.GetTradeSkillLine()
-      if openSkillLine == self[prefix].id then C_TradeSkillUI.CloseTradeSkill() return end
-      C_TradeSkillUI.OpenTradeSkill(self[prefix].id)
-    elseif button == 'RightButton' then ToggleSpellBook(BOOKTYPE_PROFESSION) end
+      CastSpell(self[prefix].offset + 1, "Spell")
+    --elseif button == 'RightButton' then ToggleSpellBook(BOOKTYPE_PROFESSION) 
+    end
   end)
 
   self[prefix..'Frame']:SetScript('OnEnter', function()
@@ -265,13 +271,14 @@ function TradeskillModule:ShowTooltip()
   if self.cook.idx then self:ListTooltipProfession('cook', r, g, b) end
   if self.fish.idx then self:ListTooltipProfession('fish', r, g, b) end
   if self.arch.idx then self:ListTooltipProfession('arch', r, g, b) end
+  if self.first_aid.idx then self:ListTooltipProfession('first_aid', r, g, b) end
 
   --in case there's daily crafts in shadowlands, add a section under the professions for cooldowns
   --probably works with: C_TradeSkillUI.GetRecipeInfo() and GetSpellCooldown()
 
   GameTooltip:AddLine(" ")
   GameTooltip:AddDoubleLine('<'..L['Left-Click']..'>', L['Toggle Profession Frame'], r, g, b, 1, 1, 1)
-  GameTooltip:AddDoubleLine('<'..L['Right-Click']..'>', L['Toggle Profession Spellbook'], r, g, b, 1, 1, 1)
+  --GameTooltip:AddDoubleLine('<'..L['Right-Click']..'>', L['Toggle Profession Spellbook'], r, g, b, 1, 1, 1)
   GameTooltip:Show()
 end
 
