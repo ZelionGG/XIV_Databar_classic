@@ -161,14 +161,14 @@ function ClockModule:RegisterFrameEvents()
     GameTooltip:Hide()
   end)
 
-local function OnClick(_, btn)
-	if InCombatLockdown() then _G.UIErrorsFrame:AddMessage(E.InfoColor.._G.ERR_NOT_IN_COMBAT) return end
-
-	if btn == 'RightButton' then
-		ToggleFrame(_G.TimeManagerFrame)
-	elseif E.Retail or E.Wrath then
-		_G.GameTimeFrame:Click()
-	end
+  self.clockTextFrame:SetScript('OnClick', function(_, button)
+    if InCombatLockdown() then return; end
+    if button == 'LeftButton' then
+      ToggleCalendar()    
+	elseif button == 'RightButton' then
+      ToggleFrame(_G.TimeManagerFrame)
+    end
+  end)
 end
 
 function ClockModule:SetClockColor()
